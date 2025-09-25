@@ -1,0 +1,33 @@
+<package>
+  <description brief="Graph-SLAM Frontend">
+    Generic framework for graph based SLAM in 3-dimensional space.
+  </description>
+	<author email="steffen.planthaber@dfki.de">Steffen Planthaber</author>
+	<maintainer email="steffen.planthaber@dfki.de">Steffen Planthaber</maintainer>
+  <license>New BSD</license>
+
+  <depend package="slam/slam3d" />
+  <depend package="database/redis/hiredis" optional="1" />
+  <depend package="database/libneo4j" optional="1" />
+  <depend package="jsoncpp" />
+  <!-- <depend package="flann" /> -->
+
+  
+  
+  
+  <keywords>
+    <keyword>Mapping</keyword>
+  </keywords>
+ 
+  <stage>1</stage>
+  <use>multi project</use>
+  <activity>active</activity>
+
+  <classifiers>
+    <classifier>c++</classifier>
+    <classifier>library</classifier>
+  </classifiers>
+
+  <tags>stable</tags>
+
+</package>

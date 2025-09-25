@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package>
+
+	<name>slam3d_db</name>
+	<version>1.0.0</version>
+	<description>Generic framework for graph based SLAM in 3-dimensional space - Databasea</description>
+	<author email="steffen.planthaber@dfki.de">Steffen Planthaber</author>
+	<maintainer email="steffen.planthaber@dfki.de">Steffen Planthaber</maintainer>
+
+	<license>New BSD</license>
+	<url type="website">http://wiki.ros.org/slam3d</url>
+
+	<buildtool_depend>cmake</buildtool_depend>
+
+	<build_depend>slam3d</build_depend>
+
+	<export>
+		<build_type>cmake</build_type>
+	</export>
+
+</package>
