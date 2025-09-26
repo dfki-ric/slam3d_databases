@@ -3,9 +3,9 @@ exec_prefix=@CMAKE_INSTALL_PREFIX@
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
-Name: slam3d
+Name: slam3d_db
 Description: Meta-Package for all components of SLAM3D.
-Version: @SLAM3D_VERSION@
+Version: @SLAM3D_DB_VERSION@
 Requires: @PKG_REQUIRES@
 Libs:
 Cflags:

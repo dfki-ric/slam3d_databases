@@ -8,8 +8,8 @@ add_subdirectory(slam3d)
 
 # Export the library interface
 install(EXPORT slam3d_db-targets
-	NAMESPACE slam3d::
-	DESTINATION lib/cmake/slam3d
+	NAMESPACE slam3d_db::
+	DESTINATION lib/cmake/slam3d_db
 )
 
 # Create and install the version file
@@ -25,7 +25,7 @@ install(
 	slam3d_db-dependencies.cmake
 		${PROJECT_BINARY_DIR}/slam3d_db-config-version.cmake
 	DESTINATION
-		lib/cmake/slam3d
+		lib/cmake/slam3d_db
 )
 
 # Install catkin package-manifest
