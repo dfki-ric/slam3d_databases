@@ -6,7 +6,7 @@
 
 namespace slam3d {
 
-    RedisMeasurementStorage::RedisMeasurementStorage(const char *ip, int port, size_t cacheSize, bool useBinaryArchive):MeasurementStorage(),cacheSize(cacheSize),useBinaryArchive(useBinaryArchive), split_size(500*1024*1024), pause(false) {
+    RedisMeasurementStorage::RedisMeasurementStorage(const char *ip, int port, size_t cacheSize, bool useBinaryArchive):MeasurementStorage(),cacheSize(cacheSize),useBinaryArchive(useBinaryArchive), split_size(500*1024*1024), enabled(true) {
         context = std::shared_ptr<redisContext>(redisConnect(ip, port));
 
         if (context.get() == nullptr || context->err) {
