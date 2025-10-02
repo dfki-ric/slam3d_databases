@@ -59,6 +59,8 @@ class RedisMeasurementStorage: public MeasurementStorage {
 
     size_t split_size;
 
+    bool pause;
+
 };
 
 
