@@ -170,12 +170,19 @@ const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) co
     return vertexobjlist;
 }
 
-const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, float radius, const std::string& sensortype) const {
+const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, float radius, const std::set<std::string>& sensors) const {
     std::string request;
-    if (sensortype == "") {
+
+    if (sensors.empty()) {
         request = "MATCH (a:Vertex) WHERE point.distance(point({x:"+std::to_string(location.translation().x())+", y:"+std::to_string(location.translation().y())+", z:"+std::to_string(location.translation().z())+"}), a.location) < "+std::to_string(radius)+" RETURN a ORDER BY a.index";
     } else {
-        request = "MATCH (a:Vertex) WHERE point.distance(point({x:"+std::to_string(location.translation().x())+", y:"+std::to_string(location.translation().y())+", z:"+std::to_string(location.translation().z())+"}), a.location) < "+std::to_string(radius)+" AND a.typeName = \""+sensortype+"\" RETURN a ORDER BY a.index";
+        // construct set query
+        std::string sensorsstr = "[";
+        for (const auto& sensor: sensors){
+            sensorsstr += "\"" + sensor + "\",";
+        }
+        sensorsstr.back() = ']';
+        request = "MATCH (a:Vertex) WHERE point.distance(point({x:"+std::to_string(location.translation().x())+", y:"+std::to_string(location.translation().y())+", z:"+std::to_string(location.translation().z())+"}), a.location) < "+std::to_string(radius)+" AND a.typeName IN "+sensorsstr+" RETURN a ORDER BY a.index";
     }
     slam3d::VertexObjectList vertexobjlist;
     neo4j->runQuery(request, [&](neo4j_result_t *element){

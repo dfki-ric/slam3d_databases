@@ -127,7 +127,7 @@ class Neo4jGraph : public Graph {
 		 * @param radius the radius of the return
 		 * @throw InvalidVertex
 		 */
-        virtual const VertexObjectList getNearbyVertices(const Transform &location, float radius, const std::string& sensortype = "") const;
+        virtual const VertexObjectList getNearbyVertices(const Transform &location, float radius, const std::set<std::string>& sensors = std::set<std::string>()) const;
 
         /**
          * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
