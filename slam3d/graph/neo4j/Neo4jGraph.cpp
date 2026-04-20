@@ -54,11 +54,6 @@ const EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)  
 	return objectList;
 }
 
-bool Neo4jGraph::optimize(unsigned iterations)
-{
-    return Graph::optimize(iterations);
-}
-
 void Neo4jGraph::addVertex(const VertexObject& v)
 {
     std::string request = "CREATE (n:Vertex $props)";
