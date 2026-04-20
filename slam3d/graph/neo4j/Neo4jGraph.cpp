@@ -131,9 +131,9 @@ void Neo4jGraph::removeEdge(IdType source, IdType target, const std::string& sen
 }
 
 
-const std::set<std::string> Neo4jGraph::getVertexSensors() const {
+const StringSet Neo4jGraph::getVertexSensors() const {
     std::string request = "MATCH (a:Vertex) RETURN DISTINCT a.sensorName";
-    std::set<std::string> result;
+    StringSet result;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
         Neo4jValue val(element);
         result.insert(val.as_string());
@@ -141,9 +141,9 @@ const std::set<std::string> Neo4jGraph::getVertexSensors() const {
     return result;
 }
 
-const std::set<std::string> Neo4jGraph::getEdgeSensors() const {
+const StringSet Neo4jGraph::getEdgeSensors() const {
     std::string request = "MATCH ()-[r]->() RETURN DISTINCT r.sensor";
-    std::set<std::string> result;
+    StringSet result;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
         Neo4jValue val(element);
         result.insert(val.as_string());
@@ -170,7 +170,7 @@ const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) co
     return vertexobjlist;
 }
 
-const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, float radius, const std::set<std::string>& sensors) const {
+const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, float radius, const StringSet& sensors) const {
     std::string request;
 
     if (sensors.empty()) {
