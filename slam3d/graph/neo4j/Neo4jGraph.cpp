@@ -18,11 +18,11 @@
 
 using namespace slam3d;
 
-Neo4jGraph::Neo4jGraph(Logger* log, MeasurementStorage* storage, const Neo4jConnection::ServerConfig &graphserver) : Graph(log, storage), logger(log)
+Neo4jGraph::Neo4jGraph(Logger* log, MeasurementStorage* storage, const Neo4jConnection::ServerConfig &graphserver) : Graph(log, storage)
 {
     neo4j = std::make_shared<Neo4jConnection>(graphserver);
 
-    VertexObjectList existingVertices = getAllVertices();
+    VertexObjectList existingVertices = getVertices();
     IdType maxindex = 0;
     for (const auto& vertex : existingVertices) {
         if (vertex.index > maxindex) {
@@ -147,8 +147,19 @@ const StringSet Neo4jGraph::getEdgeSensors() const {
 }
 
 
-const VertexObjectList Neo4jGraph::getVerticesFromSensor(const std::string& sensor)  const{
-    std::string request = "MATCH (a:Vertex) WHERE a.sensorName='"+sensor+"' RETURN a ORDER BY a.index";
+const VertexObjectList Neo4jGraph::getVertices(const StringSet& sensors)  const{
+    std::string request = "MATCH (a:Vertex)";
+    if(sensors.size())
+    {
+      request += " WHERE a.sensorName IN [";
+      for(const std::string& sensor : sensors)
+      {
+        request += "\"" + sensor + "\",";
+      }
+      request.back() = ']';
+    }
+    
+    request += " RETURN a ORDER BY a.index";
     slam3d::VertexObjectList vertexobjlist;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
         vertexobjlist.push_back(Neo4jConversion::vertexObject(element));
@@ -269,15 +280,6 @@ void Neo4jGraph::writeGraphToFile(const std::string& name)
 const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
     std::string request = "match (v1:Vertex)--{1,"+std::to_string(range)+"}(v2:Vertex) where v1.index="+std::to_string(source_id)+" return v2 as node ORDER BY v2.index";
-    slam3d::VertexObjectList vertexobjlist;
-    neo4j->runQuery(request, [&](neo4j_result_t *element){
-        vertexobjlist.push_back(Neo4jConversion::vertexObject(element));
-    });
-    return vertexobjlist;
-}
-
-const VertexObjectList Neo4jGraph::getAllVertices() const {
-    std::string request = "MATCH (n:Vertex) RETURN n AS node ORDER BY n.index";
     slam3d::VertexObjectList vertexobjlist;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
         vertexobjlist.push_back(Neo4jConversion::vertexObject(element));

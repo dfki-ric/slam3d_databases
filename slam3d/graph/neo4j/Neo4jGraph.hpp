@@ -52,11 +52,11 @@ class Neo4jGraph : public Graph {
          * @brief 
          * @param id
          */
-        const VertexObject getVertex(IdType id) const;
+        const VertexObject getVertex(IdType id) const override;
 
-        const VertexObject getVertex(boost::uuids::uuid id) const;
+        const VertexObject getVertex(boost::uuids::uuid id) const override;
 
-        virtual void setVertex(IdType id, const VertexObject& v);
+        virtual void setVertex(IdType id, const VertexObject& v) override;
 
         /**
          * @brief 
@@ -64,53 +64,45 @@ class Neo4jGraph : public Graph {
          * @param target
          * @param sensor
          */
-        const EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const;
+        const EdgeObject getEdge(IdType source, IdType target, const std::string& sensor) const override;
 
         /**
          * @brief Get all outgoing edges from given source.
          * @param source
          * @throw std::out_of_range
          */
-        const EdgeObjectList getOutEdges(IdType source) const;
+        const EdgeObjectList getOutEdges(IdType source) const override;
 
 		/**
 		 * @brief Get a list of sensors of all vertices in the graph
 		 * @return const std::set<std::string> list of all sensors within the graph
 		 */
-		virtual const std::set<std::string> getVertexSensors() const;
+		virtual const std::set<std::string> getVertexSensors() const override;
 
 		/**
 		 * @brief Get a list of sensors of all vertices in the graph
 		 * @return const std::set<std::string> list of all sensors within the graph
 		 */
-		virtual const std::set<std::string> getEdgeSensors() const;
+		virtual const std::set<std::string> getEdgeSensors() const override;
 
         /**
-         * @brief Gets a list of all vertices from given sensor.
-         * @param sensor
+         * @brief Gets a list of all vertices from given sensors or all vertices when left out.
+         * @param sensors
          */
-        virtual const VertexObjectList getVerticesFromSensor(const std::string& sensor) const;
+        virtual const VertexObjectList getVertices(const StringSet& sensors = {}) const override;
 
 		/**
 		 * @brief Gets a list of all vertices with a given measurement type.
 		 * @param sensor
 		 */
-		virtual const VertexObjectList getVerticesByType(const std::string& type) const;
+		virtual const VertexObjectList getVerticesByType(const std::string& type) const override;
 
         /**
          * @brief Serch for nodes by using breadth-first-search
          * @param source start search from this node
          * @param range maximum number of steps to search from source
          */
-        virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const;
-
-
-        /**
-         * @brief override buildNeighborIndex as getNearbyVertices is evaluated by the neo4j database
-         * 
-         * @param sensors 
-         */
-		void buildNeighborIndex(const std::set<std::string>& sensors){}
+        virtual const VertexObjectList getVerticesInRange(IdType source, unsigned range) const override;
 
 		/**
 		 * @brief Serch for nodes by location and radius
@@ -118,43 +110,36 @@ class Neo4jGraph : public Graph {
 		 * @param radius the radius of the return
 		 * @throw InvalidVertex
 		 */
-        virtual const VertexObjectList getNearbyVertices(const Transform &location, float radius, const std::set<std::string>& sensors = std::set<std::string>()) const;
-
-        /**
-         * @brief return lost of all Vertices in the graph (to accumulate a global map with different sources, i.e. not all sensor names are known)
-         *
-         * @return const VertexObjectList
-         */
-        const VertexObjectList getAllVertices() const;
+        virtual const VertexObjectList getNearbyVertices(const Transform &location, float radius, const StringSet& sensors = {}) const override;
 
         /**
          * @brief Gets a list of all edges from given sensor.
          * @param sensor
          */
-        const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const;
+        const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const override;
 
         /**
          * @brief Get all connecting edges between given vertices.
          * @param vertices
          */
-        const EdgeObjectList getEdges(const VertexObjectList& vertices) const;
+        const EdgeObjectList getEdges(const VertexObjectList& vertices) const override;
 
         /**
          * @brief Calculates the minimum number of edges between two vertices in the graph.
          * @param source
          * @param target
          */
-        float calculateGraphDistance(IdType source, IdType target) const;
+        float calculateGraphDistance(IdType source, IdType target) const override;
 
         /**
          * @brief Write the current graph to a file (currently dot).
          * @details For larger graphs, this can take a very long time.
          * @param name filename without type ending
          */
-        void writeGraphToFile(const std::string &name);
+        void writeGraphToFile(const std::string &name) override;
 
 
-        void setCorrectedPose(IdType id, const Transform& pose);
+        void setCorrectedPose(IdType id, const Transform& pose) override;
 
 
     protected:
@@ -162,14 +147,14 @@ class Neo4jGraph : public Graph {
          * @brief Add the given VertexObject to the internal graph.
          * @param v
          */
-        void addVertex(const VertexObject& v);
+        void addVertex(const VertexObject& v) override;
 
         /**
          * @brief Add the given EdgeObject to the internal graph.
          * @param e
          */
         // version to overload graph interface
-        virtual void addEdge(const EdgeObject& e);
+        virtual void addEdge(const EdgeObject& e) override;
         // internal version
         virtual void addEdge(const EdgeObject& e, bool addInverse);
 
@@ -179,7 +164,7 @@ class Neo4jGraph : public Graph {
          * @param target
          * @param sensor
          */
-        virtual void removeEdge(IdType source, IdType target, const std::string& sensor);
+        virtual void removeEdge(IdType source, IdType target, const std::string& sensor) override;
 
         // /**
         //  * @brief Get a writable reference to a VertexObject.
@@ -230,10 +215,6 @@ class Neo4jGraph : public Graph {
 
         // std::shared_ptr<RedisMap> measurements;
         // std::shared_ptr<MeasurementStorage> measurements;
-
-
-        slam3d::Logger* logger;
-
 };
 }  // namespace slam3d
 
