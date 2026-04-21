@@ -1,7 +1,7 @@
 # Find all dependencies
 find_package(PkgConfig REQUIRED)
 
-find_package(slam3d 3.1 REQUIRED)
+find_package(slam3d 3.0 REQUIRED)
 
 find_package(hiredis)
 find_package(cpprestsdk)
