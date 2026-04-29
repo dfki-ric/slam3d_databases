@@ -124,39 +124,40 @@ namespace slam3d {
         }
         redisReply* redisrep = (redisReply*)reply;
         
-        Measurement::Ptr measurement;
+        Measurement::Ptr measurement = nullptr;
         if (redisrep->elements > 0) {
             // assemble 
             std::stringstream serializedData;
 
             for (size_t elem = 0; elem < redisrep->elements; ++elem) {
-
                 serializedData << std::string(redisrep->element[elem]->str, redisrep->element[elem]->len);
             }
 
-            if (useBinaryArchive) {
-                try {
-                    boost::archive::binary_iarchive ia(serializedData);
-                    ia >> measurement;
-                } catch (const std::length_error& e) {
-                    printf("could not read measurement, try setting the boost archive type to text\n");
+            if (serializedData.str().size()) {
+                if (useBinaryArchive) {
+                    try {
+                        boost::archive::binary_iarchive ia(serializedData);
+                        ia >> measurement;
+                    } catch (const std::length_error& e) {
+                        printf("could not read measurement, try setting the boost archive type to text\n");
+                    }
+                } else {
+                    try {
+                        boost::archive::text_iarchive ia(serializedData);
+                        ia >> measurement;
+                    } catch (const std::length_error& e) {
+                        printf("could not read measurement, try setting the boost archive type to binary\n");
+                    }
                 }
-            } else {
-                
-                try {
-                    boost::archive::text_iarchive ia(serializedData);
-                    ia >> measurement;
-                } catch (const std::length_error& e) {
-                    printf("could not read measurement, try setting the boost archive type to binary\n");
+                if (cacheSize > 0) {
+                    while (cache.size() >= cacheSize){
+                        cache.pop_front();
+                    }
+                    cache.push_back({to_string(measurement->getUniqueId()) , measurement});
                 }
+            } else if (key != to_string(boost::uuids::nil_uuid())) {
+                    throw std::runtime_error("Measurement "+ key +" not found in database");
             }
-            if (cacheSize > 0) {
-                while (cache.size() >= cacheSize){
-                    cache.pop_front();
-                }
-                cache.push_back({to_string(measurement->getUniqueId()) , measurement});
-            }
-            
         } else {
             printf("%s:%i got empty measurement reply\n",__PRETTY_FUNCTION__,__LINE__);
         }
