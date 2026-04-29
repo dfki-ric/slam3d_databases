@@ -29,6 +29,17 @@ Neo4jGraph::Neo4jGraph(Logger* log, MeasurementStorage* storage, const Neo4jConn
             maxindex = vertex.index;
         }
     }
+    if (maxindex==0) {
+        VertexObject vo;
+        vo.index = mIndexer.getNext();
+        vo.fixed = true;
+        vo.correctedPose = Transform::Identity();
+        vo.measurementUuid = boost::uuids::nil_uuid();
+        vo.label = "origin";
+        vo.typeName = "void";
+        addVertex(vo);
+    }
+
     mIndexer = Indexer(maxindex+1);
 }
 
@@ -40,7 +51,17 @@ bool Neo4jGraph::deleteDatabase()
 {
     std::string request = "match (n) detach delete n";
     neo4j->runQuery(request, [&](neo4j_result_t *element){});
-    mIndexer = Indexer();
+    mIndexer = Indexer(0);
+
+	VertexObject vo;
+	vo.index = mIndexer.getNext();
+	vo.fixed = true;
+	vo.correctedPose = Transform::Identity();
+	vo.measurementUuid = boost::uuids::nil_uuid();
+	vo.label = "origin";
+	vo.typeName = "void";
+	addVertex(vo);
+
     return true;
 }
 
