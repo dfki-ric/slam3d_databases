@@ -64,7 +64,7 @@ void initDB() {
     if (!initialized) {
         neo4jlogger.setLogLevel(DEBUG);
         neo4jgraph = std::make_unique<Neo4jGraph>(&neo4jlogger,&measurements);
-        neo4jgraph->deleteDatabase();
+        neo4jgraph->clear();
         initialized = true;
     }
 }

@@ -46,7 +46,7 @@ class Neo4jGraph : public Graph {
          * @details deletes all Nodes and edges from the graph
          * @return true if deletion was successful
          */
-        bool deleteDatabase();
+        void clearGraph() override;
 
         /**
          * @brief 

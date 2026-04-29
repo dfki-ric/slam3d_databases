@@ -187,7 +187,7 @@ namespace slam3d {
         return result;
     }
 
-    void RedisMeasurementStorage::deleteDatabase() {
+    void RedisMeasurementStorage::clear() {
         std::lock_guard<std::mutex> lock(queryMutex);
         redisCommand(context.get(), "flushdb");
     }

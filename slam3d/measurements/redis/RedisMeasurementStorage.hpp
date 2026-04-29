@@ -34,7 +34,7 @@ class RedisMeasurementStorage: public MeasurementStorage {
 
     virtual bool contains(const boost::uuids::uuid& key);
 
-    virtual void deleteDatabase();
+    virtual void clear();
 
     /**
      * @brief Set the Split Size redis max value is 512 MB per string

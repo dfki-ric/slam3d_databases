@@ -29,30 +29,9 @@ Neo4jGraph::Neo4jGraph(Logger* log, MeasurementStorage* storage, const Neo4jConn
             maxindex = vertex.index;
         }
     }
-    if (maxindex==0) {
-        VertexObject vo;
-        vo.index = mIndexer.getNext();
-        vo.fixed = true;
-        vo.correctedPose = Transform::Identity();
-        vo.measurementUuid = boost::uuids::nil_uuid();
-        vo.label = "origin";
-        vo.typeName = "void";
-        addVertex(vo);
-    }
-
     mIndexer = Indexer(maxindex+1);
-}
 
-Neo4jGraph::~Neo4jGraph()
-{
-}
-
-bool Neo4jGraph::deleteDatabase()
-{
-    std::string request = "match (n) detach delete n";
-    neo4j->runQuery(request, [&](neo4j_result_t *element){});
-    mIndexer = Indexer(0);
-
+    // insert a dummy node as a source of unary edges
 	VertexObject vo;
 	vo.index = mIndexer.getNext();
 	vo.fixed = true;
@@ -61,8 +40,27 @@ bool Neo4jGraph::deleteDatabase()
 	vo.label = "origin";
 	vo.typeName = "void";
 	addVertex(vo);
+}
 
-    return true;
+Neo4jGraph::~Neo4jGraph()
+{
+}
+
+void Neo4jGraph::clearGraph()
+{
+    std::string request = "match (n) detach delete n";
+    neo4j->runQuery(request, [&](neo4j_result_t *element){});
+    mIndexer = Indexer(0);
+
+    // insert a dummy node as a source of unary edges
+	VertexObject vo;
+	vo.index = mIndexer.getNext();
+	vo.fixed = true;
+	vo.correctedPose = Transform::Identity();
+	vo.measurementUuid = boost::uuids::nil_uuid();
+	vo.label = "origin";
+	vo.typeName = "void";
+	addVertex(vo);
 }
 
 const EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)  const
