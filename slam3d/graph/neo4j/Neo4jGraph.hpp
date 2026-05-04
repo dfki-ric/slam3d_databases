@@ -41,12 +41,15 @@ class Neo4jGraph : public Graph {
                     );
         ~Neo4jGraph();
 
+
+        void init(const size_t &indexer_start = 0) override;
+
         /**
          * @brief delete the database contents
          * @details deletes all Nodes and edges from the graph
          * @return true if deletion was successful
          */
-        void clearGraph() override;
+        void clear() override;
 
         /**
          * @brief 
