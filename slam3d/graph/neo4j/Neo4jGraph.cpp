@@ -204,12 +204,14 @@ const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, 
             sensorsstr += "\"" + sensor + "\",";
         }
         sensorsstr.back() = ']';
-        request = "MATCH (a:Vertex) WHERE point.distance(point({x:"+std::to_string(location.translation().x())+", y:"+std::to_string(location.translation().y())+", z:"+std::to_string(location.translation().z())+"}), a.location) < "+std::to_string(radius)+" AND a.typeName IN "+sensorsstr+" RETURN a ORDER BY a.index";
+        request = "MATCH (a:Vertex) WHERE point.distance(point({x:"+std::to_string(location.translation().x())+", y:"+std::to_string(location.translation().y())+", z:"+std::to_string(location.translation().z())+"}), a.location) < "+std::to_string(radius)+" AND a.sensorName IN "+sensorsstr+" RETURN a ORDER BY a.index";
     }
+
     slam3d::VertexObjectList vertexobjlist;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
         vertexobjlist.push_back( Neo4jConversion::vertexObject(element));
     });
+
     return vertexobjlist;
 }
 
@@ -295,7 +297,9 @@ void Neo4jGraph::writeGraphToFile(const std::string& name)
 
 const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned range) const
 {
-    std::string request = "match (v1:Vertex)--{1,"+std::to_string(range)+"}(v2:Vertex) where v1.index="+std::to_string(source_id)+" return v2 as node ORDER BY v2.index";
+    // std::string request = "match (v1:Vertex)--{1,"+std::to_string(range)+"}(v2:Vertex) where v1.index="+std::to_string(source_id)+" return v2 as node ORDER BY v2.index";
+    std::string request = "match (v1:Vertex)-[r]-{1,"+std::to_string(range)+"}(v2:Vertex) where NONE(re in r where type(re)=\"Gravity\") AND NONE(re in r where type(re)=\"Tentative\") AND v1.index="+std::to_string(source_id)+" return DISTINCT v2 as node ORDER BY v2.index";
+
     slam3d::VertexObjectList vertexobjlist;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
         vertexobjlist.push_back(Neo4jConversion::vertexObject(element));
@@ -304,8 +308,8 @@ const VertexObjectList Neo4jGraph::getVerticesInRange(IdType source_id, unsigned
 }
 
 float Neo4jGraph::calculateGraphDistance(IdType source_id, IdType target_id) const {
-    std::string request = "MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]->(b)) WHERE a.index="+std::to_string(source_id)+" AND b.index="+std::to_string(target_id)+" RETURN LENGTH(p)";
-    
+    // std::string request = "MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[:*]->(b)) WHERE a.index="+std::to_string(source_id)+" AND b.index="+std::to_string(target_id)+" RETURN LENGTH(p)";
+    std::string request = "MATCH (a:Vertex), (b:Vertex), p=shortestPath((a)-[*]->(b)) WHERE NONE (r in relationships(p) WHERE type(r) = 'Gravity') AND a.index="+std::to_string(source_id)+" AND b.index="+std::to_string(target_id)+" RETURN LENGTH(p)";
     float result = -1;
     
     neo4j->runQuery(request, [&](neo4j_result_t *element){
