@@ -1,7 +1,4 @@
-
-
-find_package(hiredis)
-
-if (TARGET hiredis::hiredis)
+if (TARGET ${HIREDIS_TARGET})
     add_subdirectory(redis)
-endif(TARGET hiredis::hiredis)
+endif()
+

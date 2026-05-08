@@ -60,9 +60,21 @@ void Neo4jGraph::clear()
     neo4j->runQuery(request, [&](neo4j_result_t *element){});
 }
 
-const EdgeObjectList Neo4jGraph::getEdgesFromSensor(const std::string& sensor)  const
+const EdgeObjectList Neo4jGraph::getEdges(const StringSet& sensors)  const
 {
-    std::string request = "MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.sensor='"+sensor+"' AND r.inverted=false AND r.source <> r.target RETURN r";
+    std::string request = "MATCH (a:Vertex)-[r]->(b:Vertex) WHERE r.inverted=false AND r.source <> r.target";
+
+    if(sensors.size())
+    {
+      request += " AND r.sensor IN [";
+      for(const std::string& sensor : sensors)
+      {
+        request += "\"" + sensor + "\",";
+      }
+      request.back() = ']';
+    }
+    request += " RETURN r";
+
     EdgeObjectList objectList;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
         objectList.push_back(Neo4jConversion::edgeObject(element));
@@ -266,7 +278,7 @@ const EdgeObjectList Neo4jGraph::getOutEdges(IdType source) const {
     return objectList;
 }
 
-const EdgeObjectList Neo4jGraph::getEdges(const VertexObjectList& vertices) const {
+const EdgeObjectList Neo4jGraph::getConnectingEdges(const VertexObjectList& vertices) const {
     // sort ids into set
 	std::set<int> v_ids;
 

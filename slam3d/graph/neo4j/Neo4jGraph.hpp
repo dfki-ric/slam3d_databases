@@ -119,13 +119,13 @@ class Neo4jGraph : public Graph {
          * @brief Gets a list of all edges from given sensor.
          * @param sensor
          */
-        const EdgeObjectList getEdgesFromSensor(const std::string& sensor) const override;
+        const EdgeObjectList getEdges(const StringSet& sensor) const override;
 
         /**
          * @brief Get all connecting edges between given vertices.
          * @param vertices
          */
-        const EdgeObjectList getEdges(const VertexObjectList& vertices) const override;
+        const EdgeObjectList getConnectingEdges(const VertexObjectList& vertices) const override;
 
         /**
          * @brief Calculates the minimum number of edges between two vertices in the graph.

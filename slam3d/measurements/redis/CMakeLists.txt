@@ -13,7 +13,7 @@
 	target_link_libraries(measurements-redis
 		PUBLIC
 			slam3d::core
-			hiredis::hiredis
+			${HIREDIS_TARGET}
 	)
 
 	# Install header files
