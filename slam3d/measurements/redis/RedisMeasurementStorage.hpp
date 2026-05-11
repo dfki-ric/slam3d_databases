@@ -45,6 +45,8 @@ class RedisMeasurementStorage: public MeasurementStorage {
         split_size = splitsize;
     }
 
+    std::vector<boost::uuids::uuid> getAllKeys() const override;
+
  private:
     void store(const std::string& key, const std::string &type, const std::string& serializedData);
 

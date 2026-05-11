@@ -192,4 +192,31 @@ namespace slam3d {
         redisCommand(context.get(), "flushdb");
     }
 
+
+    std::vector<boost::uuids::uuid> RedisMeasurementStorage::getAllKeys() const {
+        void* reply = redisCommand(context.get(), "KEYS *");
+        if (!reply) {
+            printf("coud not get key list: %s\n", context->errstr);
+            freeReplyObject(reply);
+            throw std::out_of_range("coud not get key");
+        }
+        redisReply* redisrep = (redisReply*)reply;
+
+        std::vector<boost::uuids::uuid> keys;
+        if (redisrep->elements > 0) {
+            // collect uuids
+            for (size_t elem = 0; elem < redisrep->elements; ++elem) {
+                std::string uuid_s = std::string(redisrep->element[elem]->str, redisrep->element[elem]->len);
+                boost::uuids::uuid uuid = boost::lexical_cast<boost::uuids::uuid>(uuid_s);
+                keys.push_back(uuid);
+            }
+        } else {
+            printf("%s:%i got empty reply\n",__PRETTY_FUNCTION__,__LINE__);
+        }
+
+        freeReplyObject(reply);
+        return keys;
+    }
+
+
 }  // namespace slam3d
