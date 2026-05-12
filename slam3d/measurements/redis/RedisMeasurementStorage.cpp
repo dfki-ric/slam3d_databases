@@ -1,5 +1,6 @@
 #include <hiredis/hiredis.h>
 #include <boost/serialization/shared_ptr.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "RedisMeasurementStorage.hpp"
 
