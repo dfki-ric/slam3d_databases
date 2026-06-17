@@ -5,7 +5,7 @@
 #include <jsoncpp/json/json.h>
 
 #include "Neo4jGraph.hpp"
-#include "Neo4jValue.hpp"
+
 
 namespace slam3d {
 
@@ -38,22 +38,40 @@ Eigen::MatrixXd Neo4jConversion::eigenMatrixFromString(const std::string & strin
 
 slam3d::VertexObject Neo4jConversion::vertexObject(const neo4j_result_t *result) {
     slam3d::VertexObject returnval;
+    
     Neo4jValue bolt(result);
     Neo4jValue properties = bolt.as_node_properties();
 
-    returnval.index = properties["index"].as_integer();
-    returnval.label = properties["label"].as_string();
-    returnval.robotName = properties["robotName"].as_string();
-    returnval.sensorName = properties["sensorName"].as_string();
-    returnval.typeName = properties["typeName"].as_string();
-    returnval.timestamp.tv_sec = properties["timestamp_tv_sec"].as_integer();
-    returnval.timestamp.tv_usec = properties["timestamp_tv_usec"].as_integer();
     returnval.correctedPose = Eigen::Matrix4d(slam3d::Neo4jConversion::eigenMatrixFromString(properties["correctedPose"].as_string()));
-    returnval.measurementUuid = boost::lexical_cast<boost::uuids::uuid>(properties["measurementUuid"].as_string());
     returnval.fixed = properties["fixed"].as_bool();
+    printf("%s:%i %i\n", __PRETTY_FUNCTION__, __LINE__, properties["subMeasurements"].as_integer());
+    returnval.subMeasurements.resize(properties["subMeasurements"].as_integer());
+
+    parseVertexMeasurementData(&returnval, properties);
+
     return returnval;
 }
 
+slam3d::VertexMeasurementData Neo4jConversion::vertexMeasurementData(const neo4j_result_t *result) {
+    slam3d::VertexMeasurementData data;
+    Neo4jValue bolt(result);
+    Neo4jValue properties = bolt.as_node_properties();
+
+    parseVertexMeasurementData(&data, properties);
+
+    return data;
+}
+
+void Neo4jConversion::parseVertexMeasurementData(slam3d::VertexMeasurementData* vmd, Neo4jValue& properties) {
+    vmd->index = properties["index"].as_integer();
+    vmd->label = properties["label"].as_string();
+    vmd->robotName = properties["robotName"].as_string();
+    vmd->sensorName = properties["sensorName"].as_string();
+    vmd->typeName = properties["typeName"].as_string();
+    vmd->timestamp.tv_sec = properties["timestamp_tv_sec"].as_integer();
+    vmd->timestamp.tv_usec = properties["timestamp_tv_usec"].as_integer();
+    vmd->measurementUuid = boost::lexical_cast<boost::uuids::uuid>(properties["measurementUuid"].as_string());
+}
 
 slam3d::EdgeObject Neo4jConversion::edgeObject(const neo4j_result_t *result) {
     slam3d::EdgeObject returnval;
@@ -141,19 +159,30 @@ void  Neo4jConversion::constraintToParameters(slam3d::Constraint::Ptr constraint
 
 }
 
-ParamaterSet Neo4jConversion::createParamaterSet(const VertexObject& v) {
+ParamaterSet Neo4jConversion::createParamaterSet(const VertexMeasurementData& v) {
     ParamaterSet params;
     params.addParameterSet("props");
     params.addParameterToSet("props", "label", v.label);
     params.addParameterToSet("props", "index", v.index);
-    params.addParameterToSet("props", "correctedPose", Neo4jConversion::eigenMatrixToString(v.correctedPose.matrix()));
+    
     params.addParameterToSet("props", "robotName", v.robotName);
     params.addParameterToSet("props", "sensorName", v.sensorName);
     params.addParameterToSet("props", "typeName", v.typeName);
     params.addParameterToSet("props", "timestamp_tv_sec", v.timestamp.tv_sec);
     params.addParameterToSet("props", "timestamp_tv_usec", v.timestamp.tv_usec);
     params.addParameterToSet("props", "measurementUuid", boost::lexical_cast<std::string>(v.measurementUuid));
+    return params;
+}
+
+ParamaterSet Neo4jConversion::createParamaterSet(const VertexObject& v) {
+    const VertexMeasurementData &vmd = dynamic_cast<const VertexMeasurementData&>(v);
+    ParamaterSet params = createParamaterSet(vmd);
+    
     params.addParameterToSet("props", "fixed", v.fixed);
+    params.addParameterToSet("props", "correctedPose", Neo4jConversion::eigenMatrixToString(v.correctedPose.matrix()));
+
+    // add bool param wehether submeasuremtns exits, to vave a db call for edges in none exist
+    params.addParameterToSet("props", "subMeasurements", v.subMeasurements.size());
 
     return params;
 }

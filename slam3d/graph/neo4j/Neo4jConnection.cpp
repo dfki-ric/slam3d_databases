@@ -32,9 +32,13 @@ Neo4jConnection::~Neo4jConnection()
 size_t Neo4jConnection::runQuery(const std::string query, std::function<void (neo4j_result_t *element)> function, neo4j_value_t params) const {
     lastRunSuccessful = false;
     if (connection) {
-        // std::cout << query << std::endl;
-        std::lock_guard<std::mutex> lock(queryMutex);
-        neo4j_result_stream_t *results = neo4j_run(connection, query.c_str(), params);
+        
+        std::cout << query << std::endl;
+        neo4j_result_stream_t *results = nullptr;
+        {
+            std::lock_guard<std::mutex> lock(queryMutex);
+            results = neo4j_run(connection, query.c_str(), params);
+        }
         if (results) {
             neo4j_result_t *result = neo4j_fetch_next(results);
             size_t count = 0;

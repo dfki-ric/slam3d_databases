@@ -191,7 +191,8 @@ class Neo4jGraph : public Graph {
         //  */
         // OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
 
-    private:
+        VertexObject getVertexObject(neo4j_result_t *element) const;
+
         // std::string createQuery(const std::string& query, const web::json::value& params = web::json::value());
 
         std::shared_ptr<Neo4jConnection> neo4j;

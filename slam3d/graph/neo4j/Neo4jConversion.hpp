@@ -8,12 +8,12 @@
 
 #include <neo4j-client.h>
 
+#include "Neo4jValue.hpp"
 #include "Neo4jParamaterSet.hpp"
 
 namespace slam3d {
 
-class MeasurementStorage;
-
+// class MeasurementStorage;
 
 class Neo4jConversion {
  public:
@@ -28,8 +28,12 @@ class Neo4jConversion {
 
     // bolt, libneo4j conversions
 
+
     // static slam3d::VertexObjectList vertexObjectList(neo4j_result_stream_t *results);
     static slam3d::VertexObject vertexObject(const neo4j_result_t *result);
+    static slam3d::VertexMeasurementData vertexMeasurementData(const neo4j_result_t *result);
+
+
 
     // static slam3d::EdgeObjectList edgeObjectList(neo4j_result_stream_t *results);
     static slam3d::EdgeObject edgeObject(const neo4j_result_t *result);
@@ -39,7 +43,12 @@ class Neo4jConversion {
 
     static void constraintToParameters(slam3d::Constraint::Ptr constraint, const std::string& setname, ParamaterSet* set);
 
+    static ParamaterSet createParamaterSet(const VertexMeasurementData& v);
+
     static ParamaterSet createParamaterSet(const VertexObject& v);
+
+ private:
+    static void parseVertexMeasurementData(slam3d::VertexMeasurementData* vmd, Neo4jValue& properties);
 
 
 };

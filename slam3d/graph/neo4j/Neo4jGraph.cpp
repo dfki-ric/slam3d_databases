@@ -56,6 +56,7 @@ void Neo4jGraph::init(const size_t &indexer_start)
 
 void Neo4jGraph::clear()
 {
+    printf("%s:%i\n", __PRETTY_FUNCTION__, __LINE__);
     std::string request = "match (n) detach delete n";
     neo4j->runQuery(request, [&](neo4j_result_t *element){});
 }
@@ -82,14 +83,29 @@ const EdgeObjectList Neo4jGraph::getEdges(const StringSet& sensors)  const
 	return objectList;
 }
 
-void Neo4jGraph::addVertex(const VertexObject& v)
-{
+void Neo4jGraph::addVertex(const VertexObject& v) {
     std::string request = "CREATE (n:Vertex $props)";
 
     ParamaterSet params = Neo4jConversion::createParamaterSet(v);
 
     neo4j->runQuery(request, [&](neo4j_result_t *element){}, params.get());
 
+    printf("%s:%i %li\n", __PRETTY_FUNCTION__, __LINE__, v.subMeasurements.size());
+
+    // VertexObject has additional measurements
+    if (v.subMeasurements.size()) {
+        for (const auto &measurement : v.subMeasurements) {
+            request = "CREATE (n:VertexMeasurement $props)";
+            params = Neo4jConversion::createParamaterSet(measurement);
+            neo4j->runQuery(request, [&](neo4j_result_t *element){}, params.get());
+        }
+    
+        // add a reference edge to find submeasurements via edge and not index
+        request = "MATCH (a:Vertex), (b:VertexMeasurement) WHERE a.index="+std::to_string(v.index)+" AND b.index="+std::to_string(v.index) \
+        + " CREATE (a)-[r:subMeasurement]->(b)";
+        neo4j->runQuery(request, [&](neo4j_result_t *element){});
+
+    }
     // add position as extra statement (point property cannot be directly set via json props, there it is added as string)
     request = "MATCH (n:Vertex) WHERE n.index="+std::to_string(v.index)+" SET n.location = point({"
                              +   "x: " + std::to_string(v.correctedPose.translation().x())
@@ -190,7 +206,8 @@ const VertexObjectList Neo4jGraph::getVertices(const StringSet& sensors)  const{
     request += " RETURN a ORDER BY a.index";
     slam3d::VertexObjectList vertexobjlist;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
-        vertexobjlist.push_back(Neo4jConversion::vertexObject(element));
+        VertexObject vo = getVertexObject(element);
+        vertexobjlist.push_back(vo);
     });
     return vertexobjlist;
 }
@@ -199,7 +216,7 @@ const VertexObjectList Neo4jGraph::getVerticesByType(const std::string& type) co
     std::string request = "MATCH (a:Vertex) WHERE a.typeName='"+type+"' RETURN a ORDER BY a.index";
     slam3d::VertexObjectList vertexobjlist;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
-        vertexobjlist.push_back( Neo4jConversion::vertexObject(element));
+        vertexobjlist.push_back( getVertexObject(element));
     });
     return vertexobjlist;
 }
@@ -221,7 +238,7 @@ const VertexObjectList Neo4jGraph::getNearbyVertices(const Transform &location, 
 
     slam3d::VertexObjectList vertexobjlist;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
-        vertexobjlist.push_back( Neo4jConversion::vertexObject(element));
+        vertexobjlist.push_back( getVertexObject(element));
     });
 
     return vertexobjlist;
@@ -231,7 +248,7 @@ const VertexObject Neo4jGraph::getVertex(IdType id)  const {
     std::string request = "MATCH (n:Vertex) WHERE n.index="+std::to_string(id)+" RETURN n";
     slam3d::VertexObject vertexobj;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
-        vertexobj = Neo4jConversion::vertexObject(element);
+        vertexobj = getVertexObject(element);
     });
     return vertexobj;
 }
@@ -241,7 +258,7 @@ const VertexObject Neo4jGraph::getVertex(boost::uuids::uuid id) const {
     std::string request = "MATCH (n:Vertex) WHERE n.measurementUuid = "+uuid+" RETURN n AS node";
     slam3d::VertexObject vertexobj;
     neo4j->runQuery(request, [&](neo4j_result_t *element){
-        vertexobj = Neo4jConversion::vertexObject(element);
+        vertexobj = getVertexObject(element);
     });
     return vertexobj;
 }
@@ -252,6 +269,24 @@ void Neo4jGraph::setVertex(IdType id, const VertexObject& v) {
     ParamaterSet params = Neo4jConversion::createParamaterSet(v);
 
     neo4j->runQuery(request, [&](neo4j_result_t *element){}, params.get());
+
+    if (v.subMeasurements.size()) {
+        for (const auto &measurement : v.subMeasurements) {
+            request = "MATCH (n:VertexMeasurement) WHERE n.index="+std::to_string(v.index)+" SET n = $props";
+            params = Neo4jConversion::createParamaterSet(v);
+            neo4j->runQuery(request, [&](neo4j_result_t *element){}, params.get());
+        }
+    
+        // add a reference edge to find submeasurements via edge and not index
+        // TODO check if duplicates are created
+
+        request = "MATCH (a:Vertex), (b:VertexMeasurement) WHERE a.index="+std::to_string(v.index)+" AND b.index="+std::to_string(v.index) \
+        + " CREATE (a)-[r:subMeasurement]->(b)";
+        neo4j->runQuery(request, [&](neo4j_result_t *element){});
+    }
+
+
+
 
 }
 
@@ -345,5 +380,23 @@ void Neo4jGraph::setCorrectedPose(IdType id, const Transform& pose)
                             + " n.correctedPose = \"" + Neo4jConversion::eigenMatrixToString(pose.matrix()) + "\"";
     
     neo4j->runQuery(request, [&](neo4j_result_t *element){});
+}
+
+slam3d::VertexObject Neo4jGraph::getVertexObject(neo4j_result_t *element) const {
+    slam3d::VertexObject vertexobj = Neo4jConversion::vertexObject(element);
+
+    // check if additional measurements are par of the VO, the vectro is resized by Neo4jConversion::vertexObject, as a notification, but it is not filled
+    if (vertexobj.subMeasurements.size()) {
+        // request by edges
+        std::string request = "match (v1:Vertex)-[r:subMeasurement]-(v2:VertexMeasurement) where v1.index="+std::to_string(vertexobj.index)+" return v2";
+
+        size_t index = 0;
+        neo4j->runQuery(request, [&](neo4j_result_t *element){
+            vertexobj.subMeasurements[index] = Neo4jConversion::vertexMeasurementData(element);
+            ++index;
+        });
+    }
+
+    return vertexobj;
 }
 
