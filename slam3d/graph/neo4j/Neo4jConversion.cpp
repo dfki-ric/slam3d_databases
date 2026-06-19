@@ -44,7 +44,6 @@ slam3d::VertexObject Neo4jConversion::vertexObject(const neo4j_result_t *result)
 
     returnval.correctedPose = Eigen::Matrix4d(slam3d::Neo4jConversion::eigenMatrixFromString(properties["correctedPose"].as_string()));
     returnval.fixed = properties["fixed"].as_bool();
-    printf("%s:%i %i\n", __PRETTY_FUNCTION__, __LINE__, properties["subMeasurements"].as_integer());
     returnval.subMeasurements.resize(properties["subMeasurements"].as_integer());
 
     parseVertexMeasurementData(&returnval, properties);
