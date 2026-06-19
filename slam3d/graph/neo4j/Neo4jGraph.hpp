@@ -191,7 +191,8 @@ class Neo4jGraph : public Graph {
         //  */
         // OutEdgeIterator getEdgeIterator(IdType source, IdType target, const std::string& sensor) const;
 
-        VertexObject getVertexObject(neo4j_result_t *element) const;
+        void addSubMeasurementsToVertexObjectList(slam3d::VertexObjectList* vertexobjlist) const;
+        void addSubMeasurementsToVertexObject(slam3d::VertexObject* vertexobj) const;
 
         // std::string createQuery(const std::string& query, const web::json::value& params = web::json::value());
 
