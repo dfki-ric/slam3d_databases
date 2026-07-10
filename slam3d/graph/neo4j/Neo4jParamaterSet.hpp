@@ -33,6 +33,19 @@ class ParamaterSet {
         setmaps_storage[setname].push_back(neo4j_map_kentry(neo4j_string(names.back().c_str()), neo4j_bool(value)));
     }
 
+    void addParameterToSet(const std::string& setname, const std::string& paramname, const std::vector<std::string>& value) {
+        names.push_back(paramname);
+
+        std::vector<neo4j_value_t> values;
+        values.reserve(value.size());
+        stringVectorBuffer.push_back(values);
+
+        for (const auto& v : value) {
+            stringVectorBuffer.back().push_back(neo4j_string(v.c_str()));
+        }
+        setmaps_storage[setname].push_back(neo4j_map_kentry(neo4j_string(names.back().c_str()), neo4j_list(stringVectorBuffer.back().data(), stringVectorBuffer.back().size())));
+    }
+
     void compile() {
         for (const auto& paramaterSet : setmaps_storage){
             // printf("%s:%i %s\n", __PRETTY_FUNCTION__, __LINE__, paramaterSet.first.c_str());
@@ -72,6 +85,9 @@ class ParamaterSet {
     neo4j_value_t sets;
     // storage to construct the above value
     std::vector<neo4j_map_entry_t> sets_storage;
+
+    std::vector<std::vector<neo4j_value_t>> stringVectorBuffer;
+
     std::list<std::string> names; // <- using a list because memory location must not be changed, neo4j_string() requies it
 
     // std::map<std::string, neo4j_value_t> set_values;

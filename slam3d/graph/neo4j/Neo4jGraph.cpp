@@ -96,13 +96,14 @@ void Neo4jGraph::addVertex(const VertexObject& v) {
     if (v.subMeasurements.size()) {
         for (const auto &measurement : v.subMeasurements) {
             request = "CREATE (n:VertexMeasurement $props)";
-            params = Neo4jConversion::createParamaterSet(measurement);
-            neo4j->runQuery(request, [&](neo4j_result_t *element){}, params.get());
+            ParamaterSet subparams = Neo4jConversion::createParamaterSet(measurement);
+            neo4j->runQuery(request, [&](neo4j_result_t *element){}, subparams.get());
         }
     
         // add a reference edge to find submeasurements via edge and not index
         request = "MATCH (a:Vertex), (b:VertexMeasurement) WHERE a.index="+std::to_string(v.index)+" AND b.index="+std::to_string(v.index) \
         + " CREATE (a)-[r:subMeasurement]->(b)";
+
         neo4j->runQuery(request, [&](neo4j_result_t *element){});
 
     }
@@ -112,6 +113,8 @@ void Neo4jGraph::addVertex(const VertexObject& v) {
                              + ", y: " + std::to_string(v.correctedPose.translation().y())
                              + ", z: " + std::to_string(v.correctedPose.translation().z())
                              + "})";
+
+    std::cout << request << std::endl;
 
     neo4j->runQuery(request, [&](neo4j_result_t *element){});
 }

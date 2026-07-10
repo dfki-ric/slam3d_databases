@@ -22,6 +22,17 @@ class Neo4jValue {
         return neo4j_bool_value(value);
     }
 
+    std::vector<std::string> as_string_vector() {
+        std::vector<std::string> result;
+        size_t size = neo4j_list_length(value);
+        for (size_t i = 0; i<size;++i) {
+            neo4j_value_t entry = neo4j_list_get(value, i);
+            std::string entry_s(neo4j_ustring_value(entry), neo4j_string_length(entry));
+            result.push_back(entry_s);
+        }
+        return result;
+    }
+
     std::string as_string() {
         std::string result(neo4j_ustring_value(value), neo4j_string_length(value));
         // result.resize(neo4j_string_length(value)+1); // includes '\0' in copy

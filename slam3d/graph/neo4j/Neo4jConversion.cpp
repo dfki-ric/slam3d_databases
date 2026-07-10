@@ -18,8 +18,7 @@ std::string Neo4jConversion::eigenMatrixToString(const Eigen::MatrixXd& mat) {
 }
 
 Eigen::MatrixXd Neo4jConversion::eigenMatrixFromString(const std::string & string) {
-
-    Json::Reader reader;
+    static Json::Reader reader;
     Json::Value val;
     // web::json::value val = web::json::value::parse(string);
     
@@ -70,6 +69,7 @@ void Neo4jConversion::parseVertexMeasurementData(slam3d::VertexMeasurementData* 
     vmd->timestamp.tv_sec = properties["timestamp_tv_sec"].as_integer();
     vmd->timestamp.tv_usec = properties["timestamp_tv_usec"].as_integer();
     vmd->measurementUuid = boost::lexical_cast<boost::uuids::uuid>(properties["measurementUuid"].as_string());
+    vmd->tags = properties["tags"].as_string_vector();
 }
 
 slam3d::EdgeObject Neo4jConversion::edgeObject(const neo4j_result_t *result) {
@@ -170,6 +170,8 @@ ParamaterSet Neo4jConversion::createParamaterSet(const VertexMeasurementData& v)
     params.addParameterToSet("props", "timestamp_tv_sec", v.timestamp.tv_sec);
     params.addParameterToSet("props", "timestamp_tv_usec", v.timestamp.tv_usec);
     params.addParameterToSet("props", "measurementUuid", boost::lexical_cast<std::string>(v.measurementUuid));
+    params.addParameterToSet("props", "tags", v.tags);
+
     return params;
 }
 
