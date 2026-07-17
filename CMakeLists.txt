@@ -6,11 +6,14 @@ enable_testing()
 include(slam3d_db-dependencies.cmake)
 add_subdirectory(slam3d)
 
-# Export the library interface
-install(EXPORT slam3d_db-targets
-	NAMESPACE slam3d_db::
-	DESTINATION lib/cmake/slam3d_db
-)
+# Export the library interface (only if an optional backend was actually built)
+get_property(SLAM3D_DB_HAS_EXPORTED_TARGETS GLOBAL PROPERTY SLAM3D_DB_HAS_EXPORTED_TARGETS)
+if(SLAM3D_DB_HAS_EXPORTED_TARGETS)
+	install(EXPORT slam3d_db-targets
+		NAMESPACE slam3d_db::
+		DESTINATION lib/cmake/slam3d_db
+	)
+endif()
 
 # Create and install the version file
 include(CMakePackageConfigHelpers)

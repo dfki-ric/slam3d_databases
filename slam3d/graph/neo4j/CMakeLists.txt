@@ -39,6 +39,7 @@ message(DEBUG ${neo4j_LIBRARIES})
 		LIBRARY DESTINATION lib
 		RUNTIME DESTINATION bin
 	)
+	set_property(GLOBAL PROPERTY SLAM3D_DB_HAS_EXPORTED_TARGETS TRUE)
 
 	# Install pkg-config file
 	configure_file(slam3d_graph_neo4j.pc.in slam3d_graph_neo4j.pc @ONLY)
