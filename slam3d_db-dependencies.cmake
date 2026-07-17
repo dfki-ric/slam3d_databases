@@ -13,6 +13,5 @@ else()
 endif()
 
 find_package(cpprestsdk)
-pkg_check_modules(neo4j REQUIRED IMPORTED_TARGET neo4j-client)
-pkg_check_modules(neo4j-client REQUIRED IMPORTED_TARGET GLOBAL)
+pkg_check_modules(neo4j IMPORTED_TARGET neo4j-client)
 
