@@ -8,9 +8,8 @@
 // #include <boost/format.hpp>
 #include <slam3d/core/Solver.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 #include <boost/lexical_cast.hpp>
-
-#include <fstream>
 
 #include "Neo4jConnection.hpp"
 #include "Neo4jParamaterSet.hpp"
@@ -18,7 +17,7 @@
 
 using namespace slam3d;
 
-Neo4jGraph::Neo4jGraph(Logger* log, MeasurementStorage* storage, const Neo4jConnection::ServerConfig &graphserver) : Graph(log, storage)
+Neo4jGraph::Neo4jGraph(Logger* log, const Neo4jConnection::ServerConfig &graphserver) : Graph(log)
 {
     neo4j = std::make_shared<Neo4jConnection>(graphserver);
 
@@ -47,9 +46,9 @@ void Neo4jGraph::init(const size_t &indexer_start)
 		vo.index = mIndexer.getNext();
 		vo.fixed = true;
 		vo.correctedPose = Transform::Identity();
-		vo.measurementUuid = boost::uuids::nil_uuid();
+		vo.measurement.uniqueId = boost::uuids::nil_uuid();
 		vo.label = "origin";
-		vo.typeName = "void";
+		vo.measurement.typeName = "void";
 		addVertex(vo);
 	}
 }

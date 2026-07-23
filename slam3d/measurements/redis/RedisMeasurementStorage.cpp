@@ -1,6 +1,8 @@
 #include <hiredis/hiredis.h>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid_io.hpp>
+#include <boost/uuid/uuid_generators.hpp>
 
 #include "RedisMeasurementStorage.hpp"
 
@@ -21,18 +23,19 @@ namespace slam3d {
         //redisCommand(context.get(), "flushdb");
     }
 
-    void RedisMeasurementStorage::add(Measurement::Ptr measurement) {
+    void RedisMeasurementStorage::add(Measurement::Ptr measurement, const boost::uuids::uuid& id) {
         if (enabled) {
+            const std::string id_str = boost::lexical_cast<std::string>(id);
             if (useBinaryArchive) {
                 std::ostringstream ss;
                 boost::archive::binary_oarchive oa(ss);
                 oa << measurement;
-                store(to_string(measurement->getUniqueId()), measurement->getTypeName(), ss.str());
+                store(id_str, measurement->getTypeName(), ss.str());
             } else {
                 std::stringstream ss;
                 boost::archive::text_oarchive oa(ss);
                 oa << measurement;
-                store(to_string(measurement->getUniqueId()), measurement->getTypeName(), ss.str());
+                store(id_str, measurement->getTypeName(), ss.str());
             }
         }
     }
@@ -154,9 +157,9 @@ namespace slam3d {
                     while (cache.size() >= cacheSize){
                         cache.pop_front();
                     }
-                    cache.push_back({to_string(measurement->getUniqueId()) , measurement});
+                    cache.push_back({key , measurement});
                 }
-            } else if (key != to_string(boost::uuids::nil_uuid())) {
+            } else if (key != boost::lexical_cast<std::string>(boost::uuids::nil_uuid())) {
                     throw std::runtime_error("Measurement "+ key +" not found in database");
             }
         } else {

@@ -36,7 +36,6 @@ class Neo4jGraph : public Graph {
         typedef Neo4jConnection::ServerConfig Server;
 
         Neo4jGraph(Logger* log,
-                    MeasurementStorage* storage,
                     const Neo4jConnection::ServerConfig &graphserver = Neo4jConnection::ServerConfig("127.0.0.1", 7687, "neo4j", "neo4j")
                     );
         ~Neo4jGraph();

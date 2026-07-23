@@ -26,15 +26,15 @@ class RedisMeasurementStorage: public MeasurementStorage {
 
     RedisMeasurementStorage(const char *ip, int port, size_t cacheSize = 0, bool useBinaryArchive = false);
 
-    virtual void add(Measurement::Ptr measurement);
+    virtual void add(Measurement::Ptr measurement, const boost::uuids::uuid& id) override;
 
-    virtual Measurement::Ptr get(const std::string& key);
+    virtual Measurement::Ptr get(const std::string& key) override;
 
-    virtual Measurement::Ptr get(const boost::uuids::uuid& key);
+    virtual Measurement::Ptr get(const boost::uuids::uuid& key) override;
 
-    virtual bool contains(const boost::uuids::uuid& key);
+    virtual bool contains(const boost::uuids::uuid& key) override;
 
-    virtual void clear();
+    virtual void clear() override;
 
     /**
      * @brief Set the Split Size redis max value is 512 MB per string

@@ -2,9 +2,8 @@
 
 #include <slam3d/core/MeasurementStorage.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include <jsoncpp/json/json.h>
-
-#include "Neo4jGraph.hpp"
 
 
 namespace slam3d {
@@ -45,13 +44,13 @@ slam3d::VertexObject Neo4jConversion::vertexObject(const neo4j_result_t *result)
     returnval.fixed = properties["fixed"].as_bool();
     returnval.subMeasurements.resize(properties["subMeasurements"].as_integer());
 
-    parseVertexMeasurementData(&returnval, properties);
+    parseVertexMeasurementData(&returnval.measurement, properties);
 
     return returnval;
 }
 
-slam3d::VertexMeasurementData Neo4jConversion::vertexMeasurementData(const neo4j_result_t *result) {
-    slam3d::VertexMeasurementData data;
+MetaData Neo4jConversion::vertexMeasurementData(const neo4j_result_t *result) {
+    MetaData data;
     Neo4jValue bolt(result);
     Neo4jValue properties = bolt.as_node_properties();
 
@@ -60,16 +59,16 @@ slam3d::VertexMeasurementData Neo4jConversion::vertexMeasurementData(const neo4j
     return data;
 }
 
-void Neo4jConversion::parseVertexMeasurementData(slam3d::VertexMeasurementData* vmd, Neo4jValue& properties) {
-    vmd->index = properties["index"].as_integer();
-    vmd->label = properties["label"].as_string();
+void Neo4jConversion::parseVertexMeasurementData(MetaData* vmd, Neo4jValue& properties) {
     vmd->robotName = properties["robotName"].as_string();
     vmd->sensorName = properties["sensorName"].as_string();
     vmd->typeName = properties["typeName"].as_string();
     vmd->timestamp.tv_sec = properties["timestamp_tv_sec"].as_integer();
     vmd->timestamp.tv_usec = properties["timestamp_tv_usec"].as_integer();
-    vmd->measurementUuid = boost::lexical_cast<boost::uuids::uuid>(properties["measurementUuid"].as_string());
-    vmd->tags = properties["tags"].as_string_vector();
+    vmd->uniqueId = boost::lexical_cast<boost::uuids::uuid>(properties["uniqueId"].as_string());
+    for(const auto& tag : properties["tags"].as_string_vector()){
+        vmd->tags.insert(tag);
+    }
 }
 
 slam3d::EdgeObject Neo4jConversion::edgeObject(const neo4j_result_t *result) {
@@ -158,26 +157,29 @@ void  Neo4jConversion::constraintToParameters(slam3d::Constraint::Ptr constraint
 
 }
 
-ParamaterSet Neo4jConversion::createParamaterSet(const VertexMeasurementData& v) {
+ParamaterSet Neo4jConversion::createParamaterSet(const MetaData& v) {
     ParamaterSet params;
     params.addParameterSet("props");
-    params.addParameterToSet("props", "label", v.label);
-    params.addParameterToSet("props", "index", v.index);
     
     params.addParameterToSet("props", "robotName", v.robotName);
     params.addParameterToSet("props", "sensorName", v.sensorName);
     params.addParameterToSet("props", "typeName", v.typeName);
     params.addParameterToSet("props", "timestamp_tv_sec", v.timestamp.tv_sec);
     params.addParameterToSet("props", "timestamp_tv_usec", v.timestamp.tv_usec);
-    params.addParameterToSet("props", "measurementUuid", boost::lexical_cast<std::string>(v.measurementUuid));
-    params.addParameterToSet("props", "tags", v.tags);
+    params.addParameterToSet("props", "uniqueId", boost::lexical_cast<std::string>(v.uniqueId));
+
+    std::vector<std::string> tagsVec;
+    for(const auto& tag : v.tags)
+    {
+        tagsVec.push_back(tag);
+    }
+    params.addParameterToSet("props", "tags", tagsVec);
 
     return params;
 }
 
 ParamaterSet Neo4jConversion::createParamaterSet(const VertexObject& v) {
-    const VertexMeasurementData &vmd = dynamic_cast<const VertexMeasurementData&>(v);
-    ParamaterSet params = createParamaterSet(vmd);
+    ParamaterSet params = createParamaterSet(v.measurement);
     
     params.addParameterToSet("props", "fixed", v.fixed);
     params.addParameterToSet("props", "correctedPose", Neo4jConversion::eigenMatrixToString(v.correctedPose.matrix()));

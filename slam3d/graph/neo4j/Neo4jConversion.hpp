@@ -20,35 +20,35 @@ class Neo4jConversion {
     static std::string eigenMatrixToString(const Eigen::MatrixXd& mat);
     static Eigen::MatrixXd eigenMatrixFromString(const std::string & string);
 
-    // static void constraintToJson(slam3d::Constraint::Ptr constraint, web::json::value* json);
-    // static slam3d::Constraint::Ptr jsonToConstraint(web::json::value& json);
+    // static void constraintToJson(Constraint::Ptr constraint, web::json::value* json);
+    // static Constraint::Ptr jsonToConstraint(web::json::value& json);
 
-    // static slam3d::EdgeObject edgeObjectFromJson(web::json::value& json);
-    // static slam3d::VertexObject vertexObjectFromJson(web::json::value& json);
+    // static EdgeObject edgeObjectFromJson(web::json::value& json);
+    // static VertexObject vertexObjectFromJson(web::json::value& json);
 
     // bolt, libneo4j conversions
 
 
-    // static slam3d::VertexObjectList vertexObjectList(neo4j_result_stream_t *results);
-    static slam3d::VertexObject vertexObject(const neo4j_result_t *result);
-    static slam3d::VertexMeasurementData vertexMeasurementData(const neo4j_result_t *result);
+    // static VertexObjectList vertexObjectList(neo4j_result_stream_t *results);
+    static VertexObject vertexObject(const neo4j_result_t *result);
+    static MetaData vertexMeasurementData(const neo4j_result_t *result);
 
 
 
-    // static slam3d::EdgeObjectList edgeObjectList(neo4j_result_stream_t *results);
-    static slam3d::EdgeObject edgeObject(const neo4j_result_t *result);
+    // static EdgeObjectList edgeObjectList(neo4j_result_stream_t *results);
+    static EdgeObject edgeObject(const neo4j_result_t *result);
 
-    static slam3d::Constraint::Ptr constraint(const neo4j_result_t *result);
-    static bool constraint(const slam3d::Constraint::Ptr, neo4j_result_t *result);
+    static Constraint::Ptr constraint(const neo4j_result_t *result);
+    static bool constraint(const Constraint::Ptr, neo4j_result_t *result);
 
-    static void constraintToParameters(slam3d::Constraint::Ptr constraint, const std::string& setname, ParamaterSet* set);
+    static void constraintToParameters(Constraint::Ptr constraint, const std::string& setname, ParamaterSet* set);
 
-    static ParamaterSet createParamaterSet(const VertexMeasurementData& v);
+    static ParamaterSet createParamaterSet(const MetaData& v);
 
     static ParamaterSet createParamaterSet(const VertexObject& v);
 
  private:
-    static void parseVertexMeasurementData(slam3d::VertexMeasurementData* vmd, Neo4jValue& properties);
+    static void parseVertexMeasurementData(MetaData* vmd, Neo4jValue& properties);
 
 
 };
